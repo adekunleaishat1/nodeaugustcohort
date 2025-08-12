@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <form action="/addtodo" method="post">
+        <h1>Edit Todo</h1>
+        <input value="<%= onetodo.title %>" name="title" type="text" placeholder="Title">
+        <input value="<%= onetodo.description %>" name="description" type="text" placeholder="Description">
+        <button>Update</button>
+    </form>
+</body>
+</html>
