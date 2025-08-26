@@ -6,11 +6,12 @@
     <title>Document</title>
 </head>
 <body>
-    <form action="/todo/update/<%= index %>" method="post">
+    <form action="/todo/update/<%= onetodo._id %>" method="post">
         <h1>Edit Todo</h1>
         <input value="<%= onetodo.title %>" name="title" type="text" placeholder="Title">
         <input value="<%= onetodo.description %>" name="description" type="text" placeholder="Description">
         <button>Update</button>
     </form>
+
 </body>
 </html>

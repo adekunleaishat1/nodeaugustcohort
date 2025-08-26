@@ -20,10 +20,10 @@
               <%= task.description %>
 
               <form action="/todo/delete" method="post">
-                <input name="index" value="<%= index %>" type="text" hidden>
+                <input name="id" value="<%= task._id %>" type="text" hidden>
                 <button>Delete</button>
               </form>
-              <form action="/edit/<%= index %>" method="get">
+              <form action="/edit/<%= task._id %>" method="get">
                 <button>Edit</button>
               </form>
            </li>

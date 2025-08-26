@@ -17,6 +17,13 @@ app.set("view engine", "ejs")
  })
 const usermodel = mongoose.model("users_collection", userschema)
 
+const todoschema = mongoose.Schema({
+  title: {type: String,required: true},
+  description: {type: String, required: true}
+})
+
+const todomodel = mongoose.model("todo_collection", todoschema)
+
 let alluser = []
 let alltodo = []
 let currentUser = ''
@@ -51,20 +58,30 @@ app.get("/login",(req, res)=>{
     res.render("login")
 })
 
-app.get("/todo",(req, res)=>{
-  if (!currentUser) {
+app.get("/todo",async(req, res)=>{
+ try {
+   if (!currentUser) {
    return res.redirect("/login")
   }
-  res.render("todo", {todo: alltodo, user: currentUser})
+  const todos = await todomodel.find()
+ 
+  res.render("todo", {todo: todos, user: currentUser,})
+ } catch (error) {
+  res.redirect("/login")
+ }
 })
 
 
-app.get("/edit/:index",(req, res)=>{
-  console.log(req.params);
-  const {index} = req.params
-  console.log(alltodo[index] );
-  const onetodo = alltodo[index] 
-  res.render("edit",{onetodo,index})
+app.get("/edit/:id",async(req, res)=>{
+ try {
+    console.log(req.params);
+  const {id} = req.params
+  const onetodo = await todomodel.findById(id)
+  res.render("edit",{onetodo})
+ } catch (error) {
+  res.redirect("/todo")
+   
+ }
 })
 
 app.post("/user/signup", async (req, res)=>{
@@ -109,27 +126,61 @@ app.post("/user/login", async(req, res)=>{
 
     
 })
-
-app.post("/addtodo",(req, res)=>{
-  // console.log(req.body);
-   alltodo.push(req.body)
-   console.log(alltodo);
-   res.redirect("/todo")
-}) 
-
-app.post("/todo/delete",(req, res)=>{
-  console.log(req.body);
-  const {index} = req.body
-  alltodo.splice(index, 1)
-  res.redirect("/todo")
+app.post("/addtodo", async(req,res)=>{
+  try {
+    const task = await todomodel.create(req.body)
+    if (task) {
+      console.log("task added successfully");
+      res.redirect("/todo")
+    }
+  } catch (error) {
+    console.log(error);
+    
+  }
 })
 
-app.post("/todo/update/:index",(req, res)=>{
-   console.log(req.body, "new information");
-   const {index} = req.params
-   console.log(alltodo[index], "old information");
-   alltodo[index] = req.body
-   res.redirect("/todo")
+// app.post("/addtodo",(req, res)=>{
+//   // console.log(req.body);
+//    alltodo.push(req.body)
+//    console.log(alltodo);
+//    res.redirect("/todo")
+// }) 
+
+app.post("/todo/delete", async (req, res)=>{
+ try {
+   const {id} = req.body
+  const deletedTodos = await todomodel.deleteOne({_id:id})
+    // await todomodel.findByIdAndDelete(id)
+    if (deletedTodos) {
+        res.redirect("/todo")
+    }
+ } catch (error) {
+  console.log(error);
+    res.redirect("/todo")
+ }
+})
+
+
+
+app.post("/todo/update/:id", async(req, res)=>{
+  try {
+      console.log(req.body, "new information");
+      const {id} = req.params
+   const updatedTodo =  await todomodel.findByIdAndUpdate(
+      id,
+      req.body
+     )
+     if (updatedTodo) {
+         res.redirect("/todo")
+     }
+  } catch (error) {
+       res.redirect("/todo")
+  }
+ 
+
+  //  console.log(alltodo[index], "old information");
+  //  alltodo[index] = req.body
+ 
 })
 
 
