@@ -5,7 +5,8 @@ const mongoose = require("mongoose")
     username:{type:String, required:true},
     email:{type:String, required:true, unique:true},
     password:{type:String, required:true},
-    profilepicture:{type:String}
+    profilepicture:{type:String},
+    verified:{type:Boolean, default:false}
  })
 
 const usermodel = mongoose.model("users_collection", userschema)

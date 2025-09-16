@@ -1,6 +1,7 @@
 const usermodel = require("../model/user.model")
 const bcrypt = require("bcryptjs")
 const jwt = require("jsonwebtoken")
+const MailVerification = require("../utils/nodemailer")
 
 const userSignup = async (req, res) =>{
     try {
@@ -10,14 +11,17 @@ const userSignup = async (req, res) =>{
         if (!username || !email || !password) {
             return res.status(400).json({message:"All fields are mandatory", status:false})
         }
+         let newuser
         const hashedPassword = await bcrypt.hash(password,10)
-        console.log(hashedPassword);
-        
-       const newuser = await usermodel.create({
-        username,
-        email,
-        password:hashedPassword
-       })
+        const link = `http://localhost:8007/user/verify/email/${email}`
+       const mailsent =  await MailVerification(email, username, link)
+          if (mailsent) {
+            newuser = await usermodel.create({
+            username,
+            email,
+            password:hashedPassword
+            })
+          }
        if (newuser) {
             return res.status(200).json({message:"Sign up successful", status:true})
         
@@ -78,4 +82,19 @@ const verifytoken = async (req, res) =>{
     }
 }
 
-module.exports = {userSignup, userLogin, verifytoken}
+const verifyemail = async(req, res) =>{
+  try {
+    const {email} = req.params
+    const user =  await usermodel.findOne({email})
+    if(user){
+      user.verified = true
+      user.save()
+      return  res.render("verify",{email})
+    }
+  } catch (error) {
+    console.log(error);
+    
+  }
+}
+
+module.exports = {userSignup, userLogin, verifytoken, verifyemail}
