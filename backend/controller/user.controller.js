@@ -2,6 +2,7 @@ const usermodel = require("../model/user.model")
 const bcrypt = require("bcryptjs")
 const jwt = require("jsonwebtoken")
 const MailVerification = require("../utils/nodemailer")
+const cloudinary = require("../utils/cloudinary")
 
 const userSignup = async (req, res) =>{
     try {
@@ -52,7 +53,9 @@ const userLogin = async (req, res) =>{
        if (!hashedPassword) {
          return res.status(400).json({message:"Invalid  email or password.", status:false})
        }
-
+        if (!existuser.verified) {
+         return res.status(400).json({message:"email is not verified,check your email for verification mail.", status:false})
+        }
       const token =  await jwt.sign({email:existuser.email,id:existuser._id}, process.env.JWT_SECRETKEY,{expiresIn:300} )
       return res.status(200).json({message:"Login successful", status:true, token})
    } catch (error) {
@@ -91,10 +94,36 @@ const verifyemail = async(req, res) =>{
       user.save()
       return  res.render("verify",{email})
     }
+     return  res.render("verify",{email:""})
   } catch (error) {
     console.log(error);
-    
+     return  res.render("verify",{email:""})
   }
 }
 
-module.exports = {userSignup, userLogin, verifytoken, verifyemail}
+
+const UpdateProfile = async (req, res) =>{
+  try {
+    console.log(req.user);
+    
+    const {image} = req.body 
+    if (!image) {
+     return res.status(400).json({message:"Invalid image", status:false})    
+    }
+    const uploaded =  await cloudinary.uploader.upload(image)
+    console.log(uploaded.secure_url);
+    if (uploaded) {
+     const user =   await usermodel.findByIdAndUpdate(
+        req.user.id,
+        {$set:{profilepicture:uploaded.secure_url}},
+        {new:true}
+        )
+     return res.status(200).json({message:"profile image upload successful", status:true, user})    
+    }
+     return res.status(403).json({message:"unable to upload image", status:false})    
+  } catch (error) {
+     return res.status(500).json({message:error.message, status:false})
+  }
+}
+
+module.exports = {userSignup, userLogin, verifytoken, verifyemail, UpdateProfile}
